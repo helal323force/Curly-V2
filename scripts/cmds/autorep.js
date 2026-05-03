@@ -3,7 +3,7 @@ const path = require("path");
 
 const dataFile = path.join(__dirname, "autoreply_data.json");
 
-// Load saved memory
+// Load memory
 let memory = {};
 
 if (fs.existsSync(dataFile)) {
@@ -17,21 +17,20 @@ if (fs.existsSync(dataFile)) {
 module.exports = {
   config: {
     name: "autoreply",
-    aliases: ["atrep"],
-    version: "4.0",
+    aliases: ["ar"],
+    version: "5.0",
     author: "Helal",
     countDown: 3,
     role: 0,
     category: "utility",
     shortDescription: {
-      en: "Advanced Auto Reply"
+      en: "Smart Auto Reply (safe word match + multiline support)"
     }
   },
 
   onStart: async function ({ message, args, event }) {
     const sub = args[0]?.toLowerCase();
 
-    // Help Menu
     if (!sub) {
       return message.reply(
         "⚙️ AutoReply Commands:\n\n" +
@@ -39,34 +38,26 @@ module.exports = {
         "/ar remove <trigger>\n" +
         "/ar list\n" +
         "/ar clear\n\n" +
-        "✅ Multiline Supported\n\n" +
+        "✅ Multiline supported\n\n" +
         "Example:\n" +
-        "/ar add ip |\n" +
-        "IP\n\n" +
-        "191.96.231.21"
+        "/ar add ip |\nIP\n\n191.96.231.21\n\nPort\n14965"
       );
     }
 
     // ADD
     if (sub === "add") {
-
-      // Full raw message
       const raw = event.body;
 
-      // Remove "/ar add "
       const content = raw
         .replace(/^[\/~!.\-]?(ar|autoreply)\s+add\s+/i, "")
         .trim();
 
       if (!content.includes("|")) {
         return message.reply(
-          "❗ Use `|` to separate trigger & reply.\n\n" +
-          "Example:\n" +
-          "/ar add hello | Hi!"
+          "❗ Use `|` to separate trigger & reply.\nExample:\n/ar add hello | Hi!"
         );
       }
 
-      // Split only first |
       const splitIndex = content.indexOf("|");
 
       const trigger = content
@@ -83,7 +74,6 @@ module.exports = {
       }
 
       memory[trigger] = reply;
-
       saveData();
 
       return message.reply(
@@ -95,30 +85,20 @@ module.exports = {
 
     // REMOVE
     if (sub === "remove") {
-      const trigger = args
-        .slice(1)
-        .join(" ")
-        .toLowerCase();
+      const trigger = args.slice(1).join(" ").toLowerCase();
 
       if (!trigger) {
-        return message.reply(
-          "❌ Usage:\n/ar remove <trigger>"
-        );
+        return message.reply("❌ Usage: /ar remove <trigger>");
       }
 
       if (!memory[trigger]) {
-        return message.reply(
-          "⚠️ Trigger not found!"
-        );
+        return message.reply("⚠️ Trigger not found!");
       }
 
       delete memory[trigger];
-
       saveData();
 
-      return message.reply(
-        `🗑️ Removed '${trigger}'`
-      );
+      return message.reply(`🗑️ Removed '${trigger}'`);
     }
 
     // LIST
@@ -126,17 +106,13 @@ module.exports = {
       const data = Object.entries(memory);
 
       if (!data.length) {
-        return message.reply(
-          "📭 No AutoReply found!"
-        );
+        return message.reply("📭 No AutoReply found!");
       }
 
-      let msg =
-        "🧠 AutoReply List\n" +
-        "━━━━━━━━━━━━━━\n";
+      let msg = "🧠 AutoReply List\n━━━━━━━━━━━━━━\n";
 
-      for (const [key, val] of data) {
-        msg += `\n🔹 ${key}\n💬 ${val}\n`;
+      for (const [k, v] of data) {
+        msg += `\n🔹 ${k}\n💬 ${v}\n`;
       }
 
       return message.reply(msg);
@@ -145,38 +121,32 @@ module.exports = {
     // CLEAR
     if (sub === "clear") {
       memory = {};
-
       saveData();
-
-      return message.reply(
-        "🧹 Cleared all AutoReplies!"
-      );
+      return message.reply("🧹 Cleared all AutoReplies!");
     }
   },
 
   onChat: async function ({ event, message, api }) {
 
-    // Ignore bot's own messages
+    // ignore bot itself
     if (event.senderID == api.getCurrentUserID()) return;
 
     const text = (event.body || "").toLowerCase();
-
     if (!text) return;
 
     const keys = Object.keys(memory);
-
     if (!keys.length) return;
 
-    // Match trigger
-    const found = keys.find(trigger =>
-      text.includes(trigger.toLowerCase())
-    );
+    // SAFE WORD MATCH (FIXED)
+    const found = keys.find(trigger => {
+      const safe = trigger.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(`\\b${safe}\\b`, "i");
+      return regex.test(text);
+    });
 
     if (!found) return;
 
-    const reply = memory[found];
-
-    return message.reply(reply);
+    return message.reply(memory[found]);
   }
 };
 
@@ -188,9 +158,6 @@ function saveData() {
       JSON.stringify(memory, null, 2)
     );
   } catch (err) {
-    console.error(
-      "❌ Failed to save data:",
-      err
-    );
+    console.error("❌ Save error:", err);
   }
 }
