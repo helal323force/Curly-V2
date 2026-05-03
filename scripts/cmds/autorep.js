@@ -55,7 +55,7 @@ module.exports = {
 
       // Remove "/ar add "
       const content = raw
-        .replace(/^\/?(ar|autoreply)\s+add\s+/i, "")
+        .replace(/^[\/~!.\-]?(ar|autoreply)\s+add\s+/i, "")
         .trim();
 
       if (!content.includes("|")) {
