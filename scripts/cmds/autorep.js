@@ -17,7 +17,7 @@ if (fs.existsSync(dataFile)) {
 module.exports = {
   config: {
     name: "autoreply",
-    aliases: ["ar"],
+    aliases: ["atrep"],
     version: "4.0",
     author: "Helal",
     countDown: 3,
