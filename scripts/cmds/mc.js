@@ -22,7 +22,7 @@ module.exports = {
     message.reply("⏳ Checking Minecraft server status...");
 
     try {
-      const res = await axios.get(`https://api.mcsrvstat.us/2/${ip}`);
+      const res = await axios.get(`https://api.mcsrvstatus.io/2/${ip}`);
       const data = res.data;
 
       if (!data.online) return message.reply("❌ Server is offline or unreachable.");
