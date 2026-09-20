@@ -51,7 +51,7 @@ module.exports = {
 
     let output =
       "┍━━━━━━━━━━━━━━━━◊\n" +
-      "┋ [✦ 𝙷𝚒𝚗𝚊𝚝𝚊 𝙱𝚘𝚝 Menu ✦]\n" +
+      "┋ [✦ ᴇᴄᴏ ᴀɪ ʙᴏᴛ ᴍᴇɴᴜ ✦]\n" +
       "┕━━━━━━━━━━━━━━◊\n";
 
     for (const [cat, cmds] of Object.entries(categories)) {
